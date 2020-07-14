@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="inputJson" format="json">
+      <types:shape format="weave" example="examples/input-1.json"><![CDATA[%dw 2.0
+
+type inputJson = Array<{|  name: String,   address: String,   city: String,   state: String,   zip: String,   phone: String|}> {"example": "[{\\\"name\\\":\\\"ranga\\\",\\\"address\\\":\\\"123 ranga street\\\",\\\"city\\\":\\\"edison\\\",\\\"state\\\":\\\"new jersey\\\",\\\"zip\\\":\\\"08820\\\",\\\"phone\\\":\\\"0009990022\\\"},{\\\"name\\\":\\\"vijay\\\",\\\"address\\\":\\\"123 vijay street\\\",\\\"city\\\":\\\"edison\\\",\\\"state\\\":\\\"new jersey\\\",\\\"zip\\\":\\\"08820\\\",\\\"phone\\\":\\\"1230009999\\\"}]"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#ba76174b-81e2-4326-9749-92f3ccdb597b">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="inputJson"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

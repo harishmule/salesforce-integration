@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="salesforce-integration" doc:id="e456b9a0-e0cc-46cc-981e-f629f7de71ef" >
+		<http:listener doc:name="HTTP Listener" doc:id="393b80f2-eb81-4ea4-9e37-e823d2429075" config-ref="HTTP_Listener_config" path="/accounts"/>
+		<logger level="INFO" doc:name="Attributes" doc:id="56340631-10f4-428e-b758-b03304645cca" message="#[attributes]" />
+		<choice doc:name="Choice" doc:id="ff8e4a62-7100-4707-81e8-03c777c8d482" >
+			<when expression="#[attributes.method == 'POST']">
+				<logger level="INFO" doc:name="Post Logger" doc:id="ea586a79-31fd-4bc8-97aa-9ff2ee020604" message="Create Account Flow"/>
+				<ee:transform doc:name="Account Creating Details" doc:id="ba76174b-81e2-4326-9749-92f3ccdb597b" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+[{
+	Name: payload.name,
+	BillingStreet: payload.address,
+	BillingCity: payload.city,
+	BillingState: payload.state,
+	BillingPostalCode: payload.zip,
+	Phone: payload.phone
+}]]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<salesforce:create doc:name="Create" doc:id="572561d0-564b-496d-9299-ef39abc7c368" config-ref="Salesforce_Configuration" type="Account"/>
+				<ee:transform doc:name="Account Create Response" doc:id="7219fdc9-5bce-4493-8950-f92defe5735b" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<salesforce:query-all doc:name="Query all" doc:id="cff28d5e-b541-4baa-ac88-ad804b40e559" config-ref="Salesforce_Configuration">
+			<salesforce:salesforce-query>SELECT Name, AccountNumber, BillingCity, BillingCountry FROM Account</salesforce:salesforce-query>
+		</salesforce:query-all>
+				<ee:transform doc:name="Account Details" doc:id="abc59650-d6dd-40e0-b8ca-62afd1e8232b">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Payload Logger" doc:id="aa5d23ea-8eb6-48d1-9a0f-5a850a9b8ffd" message="#[payload]"/>
+	</flow>
+</mule>
